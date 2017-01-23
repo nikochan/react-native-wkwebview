@@ -18,6 +18,7 @@
 @property (nonatomic, copy) RCTDirectEventBlock onLoadingError;
 @property (nonatomic, copy) RCTDirectEventBlock onShouldStartLoadWithRequest;
 @property (nonatomic, copy) RCTDirectEventBlock onProgress;
+@property (nonatomic, copy) RCTDirectEventBlock onResponse;
 @property (nonatomic, copy) RCTDirectEventBlock onMessage;
 
 @end
@@ -222,17 +223,15 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
 {
-    NSLog(@"%s--navigationAction is %@",__FUNCTION__,navigationResponse);
-    NSHTTPURLResponse *response = (NSHTTPURLResponse*)navigationResponse.response;
-    
-    if (_onLoadingError) {
+    if (_onResponse) {
+        NSLog(@"%s--navigationAction is %@",__FUNCTION__,navigationResponse);
+        NSHTTPURLResponse *response = (NSHTTPURLResponse*)navigationResponse.response;
+
         NSMutableDictionary<NSString *, id> *event = [self baseEvent];
         [event addEntriesFromDictionary:@{
-                                          @"domain": (response.URL).absoluteString,
-                                          @"code": @(response.statusCode),
-                                          @"description": @"navigationResponse",
+                                          @"code": @(response.statusCode)
                                           }];
-        _onLoadingError(event);
+        _onResponse(event);
     }
     decisionHandler(WKNavigationResponsePolicyAllow);   
 }
