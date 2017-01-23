@@ -220,6 +220,23 @@ RCT_NOT_IMPLEMENTED(- (instancetype)initWithCoder:(NSCoder *)aDecoder)
 
 #pragma mark - WKNavigationDelegate methods
 
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
+{
+    NSLog(@"%s--navigationAction is %@",__FUNCTION__,navigationResponse);
+    NSHTTPURLResponse *response = (NSHTTPURLResponse*)navigationResponse.response;
+    
+    if (_onLoadingError) {
+        NSMutableDictionary<NSString *, id> *event = [self baseEvent];
+        [event addEntriesFromDictionary:@{
+                                          @"domain": (response.URL).absoluteString,
+                                          @"code": @(response.statusCode),
+                                          @"description": @"navigationResponse",
+                                          }];
+        _onLoadingError(event);
+    }
+    decisionHandler(WKNavigationResponsePolicyAllow);   
+}
+
 - (void)webView:(__unused WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
   NSURLRequest *request = navigationAction.request;
